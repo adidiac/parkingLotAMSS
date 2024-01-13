@@ -1,0 +1,10 @@
+/* notify/createContainer/container.module.css */
+
+.container {
+    position: fixed;
+    top: 100px;
+    z-index: 9999;
+    font-size: 25px;
+    /* middlle */
+    right: 16px;
+  }

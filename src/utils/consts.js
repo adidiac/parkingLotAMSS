@@ -3,7 +3,7 @@ import Home from "../Pages/Home";
 import abi from './Transactions.json';
 import Parkings from "../Pages/Parkings";
 import MyBookings from "../Pages/MyBookings";
-import MyParkings from "../Components/MyParkings";
+import MyParkings from "../Pages/MyParkings";
 
 function getPageBasedOnUserFromLocalStorage  ()  {
     const user = JSON.parse(localStorage.getItem('user'));

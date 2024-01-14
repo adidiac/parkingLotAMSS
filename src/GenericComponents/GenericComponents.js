@@ -70,7 +70,7 @@ export function GenericAddForm(
     return <>
         <GenericModal
             form={data.map((data, idx)=>{
-                if (data.special) return data.special.getComponent(data,handleChange);
+                if (data.special) return data.special.getComponent(data, formData);
                 if(data.type === 'checkbox')
                 {
                     return <Form.Check // prettier-ignore

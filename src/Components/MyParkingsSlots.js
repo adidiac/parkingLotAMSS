@@ -3,9 +3,11 @@ import * as Icon from 'react-bootstrap-icons'
 import { useParkingSlotsHook } from "../EntityDefinitions/Parkings";
 import ParkingSlotUpdate from "./ParkingSlotUpdate";
 import { useEffect, useState } from "react";
-export default function MyParkings() {
+export default function MyParkingsSlots({
+    park
+}) {
     const  {
-        getData,
+        getDataByPark,
         parkingSlotEntityAdministration,
     } = useParkingSlotsHook()
 
@@ -14,19 +16,19 @@ export default function MyParkings() {
     const additionalButtons = []
 
     const getDataParkings = async () =>{
-        getData().then(data=>{
+        getDataByPark(park).then(data=>{
             console.log(data)
             setParkingSlots(data)
         })
     }
 
     useEffect(()=>{
-        getData().then(data=>{
+        getDataByPark(park).then(data=>{
             setParkingSlots(data)
         })
     },[])
 
-    return <Container variant={'info'} style={{margin:10, position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'100%'}}>
+    return <Container variant={'info'} style={{margin:10}}>
            <Row style={{justifyContent:''}}>
             { 
                 parkingSlots.map((el,idx)=>

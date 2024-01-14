@@ -27,12 +27,12 @@ const parkingSlotDetailsFields = [
     new Field("map","","", "Map of location", specialFieldMap, null, null, true)
 ]
 
-export const useParkingSlotDetailsHook = (id) => {
+export const useParkingSlotDetailsHook = (id = '1') => {
     const parkingSlotDetailsEntity = useMemo(()=>{
         return new ParkingSlotDetailsEntityDefinition(parkingSlotDetailsFields,"Parking slot details")
     });
-    const getDetails = async () => {
-        const result = await completeApiObj.getParkDetails('1');
+    const getDetails = async (id= '1') => {
+        const result = await completeApiObj.getParkDetails(id);
         if(result.status < 400)
         {
             const data = {

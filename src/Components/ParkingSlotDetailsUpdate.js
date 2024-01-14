@@ -13,7 +13,7 @@ export default function ParkingSlotDetailsUpdate({id, isUpdate})
     const handleShowUpdate = () => setShowUpdate(true);
 
     const setData = async () =>{
-        const element = await getDetails();
+        const element = await getDetails(id);
         if(element) setElement(element);
     }
 

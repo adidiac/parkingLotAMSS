@@ -27,6 +27,11 @@ export const pagesDictionary = {
 }
 
 class pagesDictionarySingleton {
+    constructor() {
+        if (!pagesDictionarySingleton.instance) {
+            pagesDictionarySingleton.instance = pagesDictionary;
+        }
+    }
     static instance = null;
     static getInstance() {
         if (pagesDictionarySingleton.instance === null) {

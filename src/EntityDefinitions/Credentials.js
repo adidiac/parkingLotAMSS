@@ -2,7 +2,7 @@ import { Field, EntityDefinition } from "../GenericComponents/GenericComponents"
 import {completeApiObj} from "../Api/CompleteApi";
 import { Notification, info, success, warning, error } from "../notify";
 import { userRoles, pages } from "../utils/enums";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useMemo } from "react";
 class CredentialsEntityDefiniton extends EntityDefinition {
     constructor(path, fields, entityName) {
@@ -23,13 +23,15 @@ export const useLoginUser = () => {
 
     const dispatch = useDispatch();
 
+    const user = useSelector(state => state.user);
+
     const loginUser = async (entity) => {
         const response = await completeApiObj.login(entity);
         if (response.status === 200) {
             const data = response.data; // {credentials_id, email, password}
             // let's get all the users to verify credentials_id
             const users = await completeApiObj.getAllUsers();
-
+            
             if(users.status !== 200) {
                 error("Internal error",true);
                 return null;
@@ -46,9 +48,7 @@ export const useLoginUser = () => {
 
             const parkOwner = parkOwners.data.
                 find(parkOwner => parkOwner.email === data.email && parkOwner.password === data.password);
-
             if (user) {
-                
                 dispatch({type: 'LOGIN', payload: {...user, role: userRoles.NORMAL}});
                 dispatch({type: pages.PARKING});
                 success("Login successful",true);
@@ -69,6 +69,12 @@ export const useLoginUser = () => {
         }
     }
 
-    return {loginEntityDefinition, loginUser};
+    const verifyUser = async () => {
+        await completeApiObj.updateUser({...user, verified: true});
+        dispatch({type: 'LOGIN', payload: {...user, verified: true}});
+        success("User verified",true);
+    }
+
+    return {loginEntityDefinition, loginUser, verifyUser};
 
 }

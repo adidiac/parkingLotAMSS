@@ -42,10 +42,13 @@ export function GenericAddForm(
      //* type [callbackOnChange]
      const callbacksOnChange = data.filter((data)=>data.callbackOnChange!=null).map((data)=>data.callbackOnChange);
 
+const verifyIsCheckBox = (name) => {
+        return data.filter((data)=>data.name===name)[0].type === 'checkbox'
+    }
     const handleChange = (event)=>{
         const target = event.target;
         const name = target.name;
-        const value = target.value;
+        const value = verifyIsCheckBox(name) ? target.checked : target.value;
         setFormData({...formData, [name]:value});
     }
     const handleSubmit = (event)=>{
@@ -78,7 +81,9 @@ export function GenericAddForm(
                     id="idx"
                     label={data.label}
                     name={data.name}
-                    value={getValue(data)}
+                    style={{margin:10}}
+                    checked={formData[data.name]}
+                    onChange={handleChange}
                   />
                 }
                 return <Form.Group controlId={data.name} key={idx}>
@@ -158,7 +163,7 @@ export const GenericUpdateForm = (
             form={data.map((data)=>{
                 if (data.special)
                 {
-                    return data.special.getComponent(data.value,handleChange);
+                    return data.special.getComponent(data.value, dataValues);
                 }
                 if(data.type === 'checkbox')
                 {
@@ -279,6 +284,14 @@ export class Field {
             callbackOnChange: this.callbackOnChange
         }
     }
+
+    setIsReadOnly = (value) => {
+        this.readonly = value;
+    }
+
+    setDefaultValue = (value) => {
+        this.defaultValue = value;
+    }
 }
 
 export class EntityDefinition {
@@ -300,5 +313,19 @@ export class EntityDefinition {
     }
     setEntity = (entity) => {
         this.entity = entity;
+    }
+
+    withReadOnly = () => {
+        this.fields.forEach((field)=>{
+            field.setIsReadOnly(true);
+        })
+        return this;
+    }
+
+    withOutReadOnly = () => {
+        this.fields.forEach((field)=>{
+            field.setIsReadOnly(false);
+        })
+        return this;
     }
 }

@@ -3,7 +3,8 @@ import * as Icon from 'react-bootstrap-icons'
 import { useParkingSlotsHook } from "../EntityDefinitions/Parkings";
 import MyParkingsSlots from "../Components/MyParkingsSlots";
 import { useEffect, useState } from "react";
-import { GenericAddForm } from "../GenericComponents/GenericComponents";
+import { GenericAddForm, GenericUpdateForm } from "../GenericComponents/GenericComponents";
+import ParkingSlotDetails from "../Components/ParkingSlotDetails";
 export default function MyParkings(){
     const  {
         getAllParks,
@@ -14,29 +15,22 @@ export default function MyParkings(){
         addParkingSlotEntity,
         addFloorMethod,
         addParkingSlotMethod,
+        getFloorsByPark
     } = useParkingSlotsHook()
 
     const [parks, setParks] = useState([])
-    const [open, setOpen] = useState([])
-
     const [openAddPark, setOpenAddPark] = useState(false)
     const [openAddFloor, setOpenAddFloor] = useState(false)
     const [openAddParkingSlot, setOpenAddParkingSlot] = useState(false)
 
-
-    const openPark = (idx) =>{
-        setOpen(prevState=>{
-            const newState = [...prevState]
-            newState[idx] = !newState[idx]
-            return newState
+    const getData = () =>{
+        getAllParks().then(data=>{
+            setParks(data)
         })
     }
 
     useEffect(()=>{
-        getAllParks().then(data=>{
-            setParks(data)
-            setOpen(data.map(()=>false))
-        })
+        getData()
     },[])
 
     return <Container style={{textAlign:'center',marginTop:200
@@ -52,8 +46,9 @@ export default function MyParkings(){
             data = { addParkEntity.getFields().map((field)=>{
                 return field.createAddData();
             })}
-            onSubmit = {(data)=>{
-                addParkMethod(data)
+            onSubmit = {async (data)=>{
+                await addParkMethod(data)
+                getData()
             }}
             title = {addParkEntity.getEntityName()}
             submitButtonText = "Create Park"
@@ -73,14 +68,50 @@ export default function MyParkings(){
                             <Accordion.Body>
                             <Row>
                                <Col md={{ span: 1, offset: 1 }}>
-                               <Button >
+                               <Button onClick={()=>{
+                                setOpenAddFloor(true)
+                                }}>
                                     Add Floor
                                </Button>
-                                 </Col>
+                                <GenericAddForm 
+                                    data = { addFloorEntity.getFields().map((field)=>{
+                                        return field.createAddData();
+                                    })}
+                                    onSubmit = {async (data)=>{
+                                        await addFloorMethod(data,el.park_id)
+                                        getData()
+                                    }}
+                                    title = {addFloorEntity.getEntityName()}
+                                    submitButtonText = "Create Floor"
+                                    show = {openAddFloor} 
+                                    handleClose = {()=>setOpenAddFloor(false)}
+                                />
+                                </Col>
                                     <Col md={{ span: 1, offset: 1 }}>
-                               <Button>
+                               <Button onClick={async ()=>{
+                                const floors = await getFloorsByPark(el.park_id)
+                                console.log(floors)
+                                addParkingSlotEntity.withFloors(floors);
+                                setOpenAddParkingSlot(true)
+                                }}>
                                     Add Slot
                                  </Button>
+                                 <GenericAddForm 
+                                    data = { addParkingSlotEntity.getFields().map((field)=>{
+                                        return field.createAddData();
+                                    })}
+                                    onSubmit = {async (data)=>{
+                                        await addParkingSlotMethod(data,el.park_id)
+                                        getData()
+                                    }}
+                                    title = {addParkingSlotEntity.getEntityName()}
+                                    submitButtonText = "Create Slot"
+                                    show = {openAddParkingSlot} 
+                                    handleClose = {()=>setOpenAddParkingSlot(false)}
+                                />
+                                </Col>
+                                <Col md={{ span: 1, offset: 1 }}>
+                                    <ParkingSlotDetails id={el.park_details} isUpdate={true}/>
                                 </Col>
                                  </Row> 
                                 <MyParkingsSlots park={el.park_id}/>

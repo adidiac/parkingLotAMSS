@@ -54,6 +54,7 @@ export class BaseApi {
             // this.extractJwtFromHeaders();
             return result;
         } catch (error) {
+            console.error('Error while calling api', error);
             return {status: 500};
         }
     }

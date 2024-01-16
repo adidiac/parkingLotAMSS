@@ -17,7 +17,6 @@ export default function MyParkingsSlots({
 
     const getDataParkings = async () =>{
         getDataByPark(park).then(data=>{
-            console.log(data)
             setParkingSlots(data)
         })
     }

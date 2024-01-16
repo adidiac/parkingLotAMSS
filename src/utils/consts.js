@@ -26,6 +26,18 @@ export const pagesDictionary = {
     "MYPARKINGS": (options) => <MyParkings />,
 }
 
+class pagesDictionarySingleton {
+    static instance = null;
+    static getInstance() {
+        if (pagesDictionarySingleton.instance === null) {
+            pagesDictionarySingleton.instance = pagesDictionary;
+        }
+        return pagesDictionarySingleton.instance;
+    }
+}
+
+export const pagesDictionaryInstance = pagesDictionarySingleton.getInstance();
+
 export const initialStatePage = pagesDictionary[getPageBasedOnUserFromLocalStorage()]();
 
 export const userInitialState = null

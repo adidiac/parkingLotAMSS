@@ -6,8 +6,9 @@ export default function ParkingSlotDetails({id, isUpdate})
 {
     const {
         parkingSlotDetailsEntity,
-        getDetails
-     } = useParkingSlotDetailsHook(id);
+        getDetails,
+        updateDetails
+     } = useParkingSlotDetailsHook(id, isUpdate);
 
     const [showUpdate, setShowUpdate] = useState();
 
@@ -17,7 +18,7 @@ export default function ParkingSlotDetails({id, isUpdate})
     const handleShowUpdate = () => setShowUpdate(true);
 
     const setData = async () =>{
-        const element = await getDetails();
+        const element = await getDetails(id);
         if(element) setElement(element);
     }
 
@@ -38,9 +39,12 @@ export default function ParkingSlotDetails({id, isUpdate})
                 data = { parkingSlotDetailsEntity.getFields().map((field)=>{
                     return field.createUpdateData(element[field.key]);
                 })}
-                onSubmit = {()=>{}}
+                onSubmit = {async (data)=>{
+                    isUpdate && await updateDetails(id, data)
+                    setData();
+                }}
                 title = {parkingSlotDetailsEntity.getEntityName()}
-                submitButtonText = {null}
+                submitButtonText = {isUpdate ? 'Update' : null}
                 show = {showUpdate}
                 handleClose = {handleCloseUpdate}
             />

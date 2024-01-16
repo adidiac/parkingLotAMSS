@@ -1,19 +1,25 @@
 import { Field, EntityDefinition } from "../GenericComponents/GenericComponents";
 import {completeApiObj} from "../Api/CompleteApi";
 import { Notification, info, success, warning, error } from "../notify";
-import { userRoles, pages } from "../utils/enums";
 import { useDispatch, useSelector } from "react-redux";
 import { useMemo } from "react";
 import { booleanToString } from "../utils/toStringMethods";
 import ParkingSlotDetails from "../Components/ParkingSlotDetails"
 import AddBooking from "../Components/AddBooking";
 import {getMap} from "../utils/geo"
+import { Form } from "react-bootstrap";
 
 class ParkingsEntityDefinition extends EntityDefinition
 {
     constructor(fields, entityName)
     {
         super(fields, entityName);
+    }
+
+    withFloors(floors)
+    {
+        this.fields[0].setDefaultValue(floors)
+        return this;
     }
 }
 
@@ -27,6 +33,22 @@ const specialFieldMap = {
         const value = dataValue ?? data.defaultValue
         if(value === undefined) return <></>
         return <img src={getMapUrls(value)} style={{width:"100%",height:200}}></img> 
+    }
+}
+
+const specialSelect = {
+    getComponent: (data, dataValues) => {
+        const floors = dataValues["floors"]
+        if(floors === undefined) return <></>
+        return <Form.Select aria-label="Select floor" onChange={(e)=>{
+            dataValues["floor"] = e.target.value
+        }}>
+            <option value="">Select floor</option>
+            {floors.map(floor=>{
+                return <option value={floor.floor_id}>{floor.floor_number}</option>
+            })}
+      </Form.Select>
+  
     }
 }
 //TODO: add regex
@@ -71,7 +93,8 @@ const addFloorFields = [
 ]
 
 const addParkingSlotFields = [
-    new Field("floor","number","", "Floor", "",null, null, null).withRegex(),
+    new Field("floors","hidden","", "", "",null, null,null).withRegex(),
+    new Field("floor","select","", "Floor",specialSelect,null, null, null).withRegex(),
     new Field("slot_number","number","","Slot number", "",null, null, null).withRegex(),
     new Field("has_charger","checkbox","","Has charger", "", null, null, null).withRegex(),
     new Field("physical_available","checkbox","","Physical available", "", null, null, null).withRegex(),
@@ -107,12 +130,22 @@ export const useParkingSlotsHook = () =>{
         return new ParkingsEntityDefinition(addParkingSlotFields, "Add parking slot")
     },[])
 
+    const parkIdForParkingSlot = (allParks, parkingSlot, allFloors) => {
+        return allFloors.find(floor => floor.floor_id === parkingSlot.floor).park
+    }
+
     const getData =  async ( update = false, parkId) => {
         const result = await completeApiObj.getAllParkingSlots()
+        const allParks = (await completeApiObj.getAllParkings()).data
+        const floors = (await completeApiObj.getAllFloors()).data
         if(result.status < 400)
         {
-            const data = result.data
-            console.log('Parking slots', data)
+            const data = result.data.map (parkingSlot => {
+                return {
+                    ...parkingSlot,
+                    park_id: parkIdForParkingSlot(allParks, parkingSlot, floors),
+                }
+            })
             success("Succesfully retrieve parking slots", true)
             return data.map(parkingSlot=>{
                 return {
@@ -129,7 +162,7 @@ export const useParkingSlotsHook = () =>{
                         Physical available: ${parkingSlot.physical_available} \n
                         Standard price: ${parkingSlot.standard_price}`
                     },
-                    info: <ParkingSlotDetails id = {parkId ?? parkingSlot.parking_slot_id} />,
+                    info: <ParkingSlotDetails id = {parkingSlot.park_id} />,
                     add: <AddBooking id = {parkingSlot.parking_slot_id} price = {parkingSlot.standard_price} />
                 }
             })
@@ -174,7 +207,6 @@ export const useParkingSlotsHook = () =>{
     const getDataByPark = async (id) => {
         const allParksSlots = await getData(true, id)
         const floors = await completeApiObj.getAllFloors()
-        console.log('Floors',floors.data)
         const floorsData = floors.data.filter (floor => floor.park === id)
         const allParksSlotsData = allParksSlots.filter(parkingSlot => {
             return floorsData.some(floor => floor.floor_id === parkingSlot.floor)
@@ -187,7 +219,6 @@ export const useParkingSlotsHook = () =>{
         if(resultParks.status < 400)
         {
             const dataParks = resultParks.data
-            console.log('Parks', dataParks)
             success("Succesfully retrieve parks", true)
             return dataParks
             .filter(park=>park.park_owner === user.park_owner_id)
@@ -238,28 +269,43 @@ export const useParkingSlotsHook = () =>{
         }
     }
 
+    const getFloorsByPark = async (parkId) => {
+        const floors = await completeApiObj.getAllFloors()
+        const floorsData = floors.data.filter (floor => floor.park === parkId)
+        return floorsData
+    }
+
     const addFloorMethod = async (data, parkId) => {
-        console.log('park id add flor', parkId, data)
-        // const result = await completeApiObj.addFloor(data)
-        // if(result.status < 400)
-        // {
-        //     success("Succesfully add floor", true)
-        // }
-        // else{
-        //     error("Problem in add floor", true);
-        // }
+        const floor = {
+            floor_number : data.floor_number,
+            park : parkId
+        }
+        const result = await completeApiObj.addFloor(floor)
+        if(result.status < 400)
+        {
+            success("Succesfully add floor", true)
+        }
+        else{
+            error("Problem in add floor", true);
+        }
     }
 
     const addParkingSlotMethod = async (data, parkId) => {
-        console.log('park id add park slot', parkId, data)
-        // const result = await completeApiObj.addParkingSlot(data)
-        // if(result.status < 400)
-        // {
-        //     success("Succesfully add parking slot", true)
-        // }
-        // else{
-        //     error("Problem in add parking slot", true);
-        // }
+        const parkingSlot = {
+            floor : data.floor,
+            slot_number : data.slot_number,
+            has_charger : data.has_charger,
+            physical_available : data.physical_available,
+            standard_price : data.standard_price,
+        }
+        const result = await completeApiObj.addParkingSlot(data)
+        if(result.status < 400)
+        {
+            success("Succesfully add parking slot", true)
+        }
+        else{
+            error("Problem in add parking slot", true);
+        }
     }
 
     return {
@@ -276,6 +322,7 @@ export const useParkingSlotsHook = () =>{
         addFloorEntity,
         addParkingSlotEntity,
         addFloorMethod,
-        addParkingSlotMethod
+        addParkingSlotMethod,
+        getFloorsByPark
     }
 }

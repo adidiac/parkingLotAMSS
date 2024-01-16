@@ -24,6 +24,10 @@ export class CompleteApi extends BaseApi {
         return await this.apiCall(enumMethods.POST, this.loginPath, null, data);
     }
 
+    updateUser = async (data) => {
+        return await this.apiCall(enumMethods.PUT, this.user, data.user_id, data);
+    }
+
     createCredentials = async (data) => {
         return  await this.apiCall(enumMethods.POST, this.credentials, null, data);
     }
@@ -57,6 +61,10 @@ export class CompleteApi extends BaseApi {
 
     getParkDetails = async (id) => {
         return await this.apiCall(enumMethods.GET,this.parkDetails, id, null);
+    }
+
+    updateParkDetails = async (id, data) => {
+        return await this.apiCall(enumMethods.PUT, this.parkDetails, id, data);
     }
 
     getAllBookings = async () => {

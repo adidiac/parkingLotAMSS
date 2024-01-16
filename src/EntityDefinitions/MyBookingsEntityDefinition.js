@@ -35,7 +35,6 @@ export const useMyBookingsHook=()=>
         {
             const data = result.data
             const myBookings = data.filter(booking => booking.user === user.user_id);
-            console.log(myBookings)
             success("Succesfully retrieve my bookings", true)
             return myBookings.map(myBooking => {
                 return  {

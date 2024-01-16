@@ -18,6 +18,7 @@ export const user = (state=userInitialState,action)=>{
     }
     if(action.type==='LOGIN'){
         state=action.payload;
+        console.log('user logged',state);
         storeToLocalStorage(state);
         return state;
     }
